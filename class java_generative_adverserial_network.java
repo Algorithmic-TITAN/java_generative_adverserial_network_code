@@ -587,5 +587,5 @@ class java_generative_adverserial_network
         //CONTINUE
     }
 
-    
+    //remember to go to https://github.com/Algorithmic-TITAN/java_generative_adverserial_network_code to save to github (this is in the src folder in file explorer)
 }
