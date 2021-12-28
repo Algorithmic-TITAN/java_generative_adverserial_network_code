@@ -223,7 +223,7 @@ class java_generative_adverserial_network
 
 
 
-  public static double[][] find_which_way_to_nudge_values(int[] layers, int DATA_INSTANCE, String activation_functions, double[] full_population_weights, double[] full_population_biases, double[] empty_derivative_list_weights, double[] empty_derivative_lists_biases, double[][][] training_data, double[] last_layer_to_cost_effects_empty, double[] weight_surrounding_layer_numbers_empty, double[] nodes_counted_in_each_layer, double[][][] empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer)
+  public static double[][] find_which_way_to_nudge_values_SPECIAL_FOR_GANs(int[] layers, int DATA_INSTANCE, String activation_functions, double[] full_population_weights, double[] full_population_biases, double[] empty_derivative_list_weights, double[] empty_derivative_lists_biases, double[][][] training_data, double[] last_layer_to_cost_effects_empty, double[] weight_surrounding_layer_numbers_empty, double[] nodes_counted_in_each_layer, double[][][] empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer, boolean generator_training, double[] full_population_weights_descriminator_ONLY_USE_IF_NEEDED, double[] full_population_biases_descriminator_ONLY_USE_IF_NEEDED, String activation_functions_descriminator_ONLY_USE_IF_NEEDED, double[][][] empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_descriminator_ONLY_USE_IF_NEEDED, int[] layers_descriminator_ONLY_USE_IF_NEEDED)
   {
     activation_functions=activation_functions.replace("binary_step","");
     activation_functions=activation_functions.replace("binarystep", "");
@@ -234,8 +234,17 @@ class java_generative_adverserial_network
 
     double[] last_layer_to_cost_effects=last_layer_to_cost_effects_empty;
     for(int i=0; i<training_data[0][1].length; i++)
-    {
-      double current_node_derivative_appending_to_originoal_last_layer_to_cost_effects=2*(outputs[i]-training_data[DATA_INSTANCE][1][i]);
+    {        
+      double current_node_derivative_appending_to_originoal_last_layer_to_cost_effects=0.0; //JUST MAKING IT SO IT EXISTS FOR THE SCOPE IT IS NEEDED IN.
+
+      if (!generator_training)
+      {
+        current_node_derivative_appending_to_originoal_last_layer_to_cost_effects=2*(outputs[i]-training_data[DATA_INSTANCE][1][i]);
+      }
+      else
+      {
+        current_node_derivative_appending_to_originoal_last_layer_to_cost_effects=2*(1-run_network(full_population_weights_descriminator_ONLY_USE_IF_NEEDED, full_population_biases_descriminator_ONLY_USE_IF_NEEDED, run_network(full_population_weights, full_population_biases, training_data[DATA_INSTANCE][0], layers, activation_functions, empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer)[0][0][0], layers_descriminator_ONLY_USE_IF_NEEDED, activation_functions_descriminator_ONLY_USE_IF_NEEDED, empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_descriminator_ONLY_USE_IF_NEEDED)[0][0][0][i]);
+      }
       if (activation_functions.contains("sigmoid"))
       {
         current_node_derivative_appending_to_originoal_last_layer_to_cost_effects*=(1/(1+Math.pow(2.71828, -outputs[i])))*(1-(1/(1+Math.pow(2.71828, -outputs[i]))));
@@ -331,13 +340,13 @@ class java_generative_adverserial_network
 
 
 
-  public static double[][] take_gradient_decent_step(int[] layers, String activation_functions, double[][][] training_data, double weights_amount, double biases_amount, double[] full_population_weights, double[] full_population_biases, double learning_rate, double[] empty_derivative_list_weights, double[] empty_derivative_lists_biases, double[] last_layer_to_cost_effects_empty, double[] weight_surrounding_layer_numbers_empty, double[] nodes_counted_in_each_layer,double[][][] empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer)
+  public static double[][] take_gradient_decent_step_SPECIAL_FOR_GANs(int[] layers, String activation_functions, double[][][] training_data, double weights_amount, double biases_amount, double[] full_population_weights, double[] full_population_biases, double learning_rate, double[] empty_derivative_list_weights, double[] empty_derivative_lists_biases, double[] last_layer_to_cost_effects_empty, double[] weight_surrounding_layer_numbers_empty, double[] nodes_counted_in_each_layer,double[][][] empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer, boolean generator_training, double[] full_population_weights_descriminator_ONLY_USE_IF_NEEDED, double[] full_population_biases_descriminator_ONLY_USE_IF_NEEDED, String activation_functions_descriminator_ONLY_USE_IF_NEEDED, double[][][] empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_descriminator_ONLY_USE_IF_NEEDED,  int[] layers_descriminator_ONLY_USE_IF_NEEDED)
   {
     double[][] packaged_outputs={full_population_weights,full_population_biases};
 
     for(int i=0; i<training_data.length; i++)
     {
-      double[][] weights_and_biases_packaged_derivatives=find_which_way_to_nudge_values(layers, i, activation_functions, full_population_weights, full_population_biases, empty_derivative_list_weights, empty_derivative_lists_biases, training_data, last_layer_to_cost_effects_empty, weight_surrounding_layer_numbers_empty, nodes_counted_in_each_layer, empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer);
+      double[][] weights_and_biases_packaged_derivatives=find_which_way_to_nudge_values_SPECIAL_FOR_GANs(layers, i, activation_functions, full_population_weights, full_population_biases, empty_derivative_list_weights, empty_derivative_lists_biases, training_data, last_layer_to_cost_effects_empty, weight_surrounding_layer_numbers_empty, nodes_counted_in_each_layer, empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer, generator_training, full_population_weights_descriminator_ONLY_USE_IF_NEEDED, full_population_biases_descriminator_ONLY_USE_IF_NEEDED, activation_functions_descriminator_ONLY_USE_IF_NEEDED, empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_descriminator_ONLY_USE_IF_NEEDED, layers_descriminator_ONLY_USE_IF_NEEDED);
       double[] derivatives_in_network_weights=weights_and_biases_packaged_derivatives[0];
       double[] derivatives_in_network_biases=weights_and_biases_packaged_derivatives[1];
       for (int i1=0; i1<weights_amount; i1++)
@@ -587,8 +596,8 @@ class java_generative_adverserial_network
         double[] initializing_range_generator={-0.3,0.3};
         String data_as_string=get_text_data();
         //THE AMOUNT OF INPUTS IN THE DISCRIMINATOR SHOULD BE THE SAME AS THE AMOUNT OF OUTPUTS IN THE GENERATOR
-        int[] LAYERS_BEING_USED_DISCRIMINATOR={1,5,1};
-        int[] LAYERS_BEING_USED_DISCRIMINATOR_FOR_EFFICIENCY={1,5,1};
+        int[] LAYERS_BEING_USED_DISCRIMINATOR={1,5,5,1};
+        int[] LAYERS_BEING_USED_DISCRIMINATOR_FOR_EFFICIENCY={1,5,5,1};
         int[] LAYERS_BEING_USED_GENERATOR={1,2,5,1};
         int[] LAYERS_BEING_USED_GENERATOR_FOR_EFFICIENCY={1,2,5,1};
         String activation_functions_for_generator="";
@@ -600,7 +609,8 @@ class java_generative_adverserial_network
         double[][][] data=convert_data(data_as_string, data_instance_amount_real, LAYERS_BEING_USED_DISCRIMINATOR[0], LAYERS_BEING_USED_DISCRIMINATOR[LAYERS_BEING_USED_DISCRIMINATOR.length-1], print_data);
         double[] testing_training_data_ratio={0,1};
         final int epoch_amount=1000000000; //1000000000 is the max factor of 10 that can be in this, because otherwise it would be a long or some other type of datatype, but this is for all practical uses infinity.
-        final double learning_rate=0.001;
+        final double learning_rate_discriminator=0.0001;
+        final double learning_rate_generator=0.0001;
 
         //Getting ready for main computation
         System.out.println("Getting ready...");
@@ -685,13 +695,21 @@ class java_generative_adverserial_network
             }
           }
 
-          double[][] new_weights_and_biases_discriminator=take_gradient_decent_step(LAYERS_BEING_USED_DISCRIMINATOR, activation_functions_for_discriminator, discriminator_training_data, weights_amount_discriminator, biases_amount_discriminator, full_population_weights_discriminator, full_population_biases_discriminator, learning_rate, empty_derivative_list_weights_discriminator, empty_derivative_lists_biases_discriminator, last_layer_to_cost_effects_EMPTY_discriminator, weight_surrounding_layer_numbers_EMPTY_discriminator, nodes_counted_in_each_layer_discriminator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator);
+          double[][] new_weights_and_biases_discriminator=take_gradient_decent_step_SPECIAL_FOR_GANs(LAYERS_BEING_USED_DISCRIMINATOR, activation_functions_for_discriminator, discriminator_training_data, weights_amount_discriminator, biases_amount_discriminator, full_population_weights_discriminator, full_population_biases_discriminator, learning_rate_discriminator, empty_derivative_list_weights_discriminator, empty_derivative_lists_biases_discriminator, last_layer_to_cost_effects_EMPTY_discriminator, weight_surrounding_layer_numbers_EMPTY_discriminator, nodes_counted_in_each_layer_discriminator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator, false , new double[] {}, new double[] {}, new String (""), new double[][][] {}, new int[] {}); //The false near the end indicates that it is not the generator that it is finding the error for when calculating derivatives
           full_population_weights_discriminator=new_weights_and_biases_discriminator[0];
           full_population_biases_discriminator=new_weights_and_biases_discriminator[1];
 
-          //THE TRAINING OF THE DESCRIMINATOR WORKS!!!
+          System.out.print("Discriminator guesses (for fake then real data): "+Arrays.toString(run_network(full_population_weights_discriminator, full_population_biases_discriminator, outputs_for_all_training_data_generator_FAKE[0][0], LAYERS_BEING_USED_DISCRIMINATOR, activation_functions_for_discriminator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator)[0][0][0]));
+          System.out.println(Arrays.toString(run_network(full_population_weights_discriminator, full_population_biases_discriminator, data[0][0], LAYERS_BEING_USED_DISCRIMINATOR, activation_functions_for_discriminator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator)[0][0][0]));
 
-          //REMEMBER THAT THE LENGTH OF THE OUTPUTS IS NOT THE ACTUAL AMOUNT OF OUTPUTS!!!
+          for (int i6=0; i6<2; i6++)
+          {
+          double[][] new_weights_and_biases_generator=take_gradient_decent_step_SPECIAL_FOR_GANs(LAYERS_BEING_USED_GENERATOR, activation_functions_for_generator, data, weights_amount_generator, biases_amount_generator, full_population_weights_generator, full_population_biases_generator, learning_rate_generator, empty_derivative_list_weights_generator, empty_derivative_lists_biases_generator, last_layer_to_cost_effects_EMPTY_generator, weight_surrounding_layer_numbers_EMPTY_generator, nodes_counted_in_each_layer_generator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_generator, true, full_population_weights_discriminator, full_population_biases_discriminator, activation_functions_for_discriminator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator, LAYERS_BEING_USED_DISCRIMINATOR);
+          full_population_weights_generator=new_weights_and_biases_generator[0];
+          full_population_biases_generator=new_weights_and_biases_generator[1];
+          }
+         //THE TRAINING OF THE DESCRIMINATOR AND GENERATOR WORKS!!!
+         //IF THE DESCRIMINATOR WINS, IT WILL DISCRIMINATE CORRECTLY. IF THE GENERATOR WINS, IT WILL MAKE THE DESCRIMINATOR GO CRAZY AND END UP WITH A MUCH OVERCOMPENSATED NETWORK, DISPLAYING "NaN" AS THE OUTPUTS. TRY TO FIX THIS WITH EMOTIONS.
 
           //MAKE THE LEARNING RATE CONTROLLABLE BETWEEN THE GENERATOR AND DISCRIMINATOR
         }
