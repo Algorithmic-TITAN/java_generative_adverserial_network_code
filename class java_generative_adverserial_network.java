@@ -599,10 +599,11 @@ class java_generative_adverserial_network
         double[][][] data=convert_data(data_as_string, data_instance_amount, LAYERS_BEING_USED_DISCRIMINATOR[0], LAYERS_BEING_USED_DISCRIMINATOR[LAYERS_BEING_USED_DISCRIMINATOR.length-1], print_data);
         double[] testing_training_data_ratio={0,1};
         final int epoch_amount=1000000000; //1000000000 is the max factor of 10 that can be in this, because otherwise it would be a long or some other type of datatype, but this is for all practical uses infinity.
-        final double learning_rate=0.00001;
+        final double learning_rate=0.001;
 
         //Getting ready for main computation
         System.out.println("Getting ready...");
+        String activation_functions_for_discriminator="sigmoid "+additional_activation_functions_discriminator;
         double[][] all_outputs_of_init_discriminator=init(LAYERS_BEING_USED_DISCRIMINATOR, initializing_range_discriminator);
         double[][] all_outputs_of_init_generator=init(LAYERS_BEING_USED_GENERATOR, initializing_range_generator);
         double[][][] initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator=initialize_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed(LAYERS_BEING_USED_DISCRIMINATOR);
@@ -633,9 +634,21 @@ class java_generative_adverserial_network
         double[] weight_surrounding_layer_numbers_EMPTY_discriminator=packaged_last_layer_to_cost_effects_and_weight_surrounding_layer_numbers_empty_lists_for_efficiency_outputs_discriminator[1];
         double[] weight_surrounding_layer_numbers_EMPTY_generator=packaged_last_layer_to_cost_effects_and_weight_surrounding_layer_numbers_empty_lists_for_efficiency_outputs_generator[1];
         //Main training loop
+        for (int i=0; i<epoch_amount; i++)
+        {
+          double[][] new_weights_and_biases_discriminator=take_gradient_decent_step(LAYERS_BEING_USED_DISCRIMINATOR, activation_functions_for_discriminator, training_data, weights_amount_discriminator, biases_amount_discriminator, full_population_weights_discriminator, full_population_biases_discriminator, learning_rate, empty_derivative_list_weights_discriminator, empty_derivative_lists_biases_discriminator, last_layer_to_cost_effects_EMPTY_discriminator, weight_surrounding_layer_numbers_EMPTY_discriminator, nodes_counted_in_each_layer_discriminator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator);
+          full_population_weights_discriminator=new_weights_and_biases_discriminator[0];
+          full_population_biases_discriminator=new_weights_and_biases_discriminator[1];
+          System.out.println(Arrays.toString(run_network(full_population_weights_discriminator, full_population_biases_discriminator, new double[] {0.5}, LAYERS_BEING_USED_DISCRIMINATOR, activation_functions_for_discriminator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator)[0][0][0]));
+          double[][] new_weights_and_biases_generator=take_gradient_decent_step(LAYERS_BEING_USED_GENERATOR, activation_functions_for_generator, training_data, weights_amount_generator, biases_amount_generator, full_population_weights_generator, full_population_biases_generator, learning_rate, empty_derivative_list_weights_generator, empty_derivative_lists_biases_generator, last_layer_to_cost_effects_EMPTY_generator, weight_surrounding_layer_numbers_EMPTY_generator, nodes_counted_in_each_layer_generator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_generator);
+          full_population_weights_generator=new_weights_and_biases_generator[0];
+          full_population_biases_generator=new_weights_and_biases_generator[1];
+          System.out.println(Arrays.toString(run_network(full_population_weights_generator, full_population_biases_generator, new double[] {0.5}, LAYERS_BEING_USED_GENERATOR, activation_functions_for_generator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_generator)[0][0][0]));
+            //DOES NOT WORK, BUT IT MAY JUST BE WHAT IT IS PRINTING NOT WORKING
+        }
 
 
-        //MAKE SURE THE THINGS IN GETTING IT READY WORKS FULLY, AND THE THINGS IN THE THINGS YOU CAN SPECIFY. YOU'VE ALREADY MADE SURE EVERYTHING DIFFERING THE DISCIMINATOR AND GENERATOR IN THEM ARE GOOD, BUT NOW MAKE SURE EVERYTHING SERVES IT'S PURPOSE BY MAKING THEM LEARN. YOU CAN DO IT NORMALLY WITH THEM BOTH FIRST, TO CHECK
+        //THE THINGS IN GETTING IT READY WORKS FULLY, AND THE THINGS IN THE THINGS YOU CAN SPECIFY. YOU'VE ALREADY MADE SURE EVERYTING IN GETTING IT READY FOR THE MAIN COMPUTATION AND THE THINGS YOU CAN SPECIFY WORKS. IT WORKS FULLY. NOW JUST MODIFY THE MAIN TRAINING LOOP SO THAT IT IS A GAN NOT TWO NETWORKS TRAINING AND PRINTING SOMETHING.
 
 
     }
