@@ -833,7 +833,7 @@ class java_generative_adverserial_network
 
 
          //THE TRAINING OF THE DESCRIMINATOR AND GENERATOR WORKS!!!
-         //Romance works now, the romance emotion works, so it is much better and more stable.
+         //The romance emotion works now, so it is much better and more stable.
         
         }
 
