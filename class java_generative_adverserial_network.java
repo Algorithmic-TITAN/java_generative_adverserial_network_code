@@ -81,7 +81,7 @@ class java_generative_adverserial_network
         }
     }
     node_firing_numbers=Arrays.copyOf(node_firing_numbers, node_firing_numbers_LEN);
-    for (int i=0; i<INPUTS.length; i++)
+    for (int i=0; i<layers[0]; i++)
     {
       node_firing_numbers[i]=INPUTS[i];
     }
@@ -227,10 +227,18 @@ class java_generative_adverserial_network
   {
     activation_functions=activation_functions.replace("binary_step","");
     activation_functions=activation_functions.replace("binarystep", "");
-    double[][][][] run_network_pagacked_outputs=run_network(full_population_weights, full_population_biases, training_data[DATA_INSTANCE][0], layers, activation_functions, empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer);
-    double[][][] weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer=run_network_pagacked_outputs[2];
-    double[] outputs=run_network_pagacked_outputs[0][0][0];
-    double[] node_firing_numbers=run_network_pagacked_outputs[1][0][0];
+    double[][][][] run_network_packaged_outputs;
+    if(!generator_training)
+    {
+      run_network_packaged_outputs=run_network(full_population_weights, full_population_biases, training_data[DATA_INSTANCE][0], layers, activation_functions, empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer);
+    }
+    else
+    {
+      run_network_packaged_outputs=run_network(full_population_weights_descriminator_ONLY_USE_IF_NEEDED, full_population_biases_descriminator_ONLY_USE_IF_NEEDED, run_network(full_population_weights, full_population_biases, training_data[DATA_INSTANCE][0], layers, activation_functions, empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer)[0][0][0], layers_descriminator_ONLY_USE_IF_NEEDED, activation_functions_descriminator_ONLY_USE_IF_NEEDED, empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_descriminator_ONLY_USE_IF_NEEDED);
+    }
+    double[][][] weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer=run_network_packaged_outputs[2];
+    double[] outputs=run_network_packaged_outputs[0][0][0];
+    double[] node_firing_numbers=run_network_packaged_outputs[1][0][0];
 
     double[] last_layer_to_cost_effects=last_layer_to_cost_effects_empty;
     for(int i=0; i<training_data[0][1].length; i++)
@@ -243,7 +251,7 @@ class java_generative_adverserial_network
       }
       else
       {
-        current_node_derivative_appending_to_originoal_last_layer_to_cost_effects=2*(1-run_network(full_population_weights_descriminator_ONLY_USE_IF_NEEDED, full_population_biases_descriminator_ONLY_USE_IF_NEEDED, run_network(full_population_weights, full_population_biases, training_data[DATA_INSTANCE][0], layers, activation_functions, empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer)[0][0][0], layers_descriminator_ONLY_USE_IF_NEEDED, activation_functions_descriminator_ONLY_USE_IF_NEEDED, empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_descriminator_ONLY_USE_IF_NEEDED)[0][0][0][i]);
+        current_node_derivative_appending_to_originoal_last_layer_to_cost_effects=2*(1-outputs[i]);
       }
       if (activation_functions.contains("sigmoid"))
       {
@@ -574,6 +582,9 @@ class java_generative_adverserial_network
   public static double[][][] initialize_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed(int[] layers)
   {
     double[][][] output_array={};
+    double[][] new_weights_and_biases_discriminator=null;
+    double[] new_weights_discriminator=null;
+    double[] new_biases_discriminator=null;
     output_array=Arrays.copyOf(output_array, layers.length-1);
     for (int i=0; i<output_array.length; i++)
     {
@@ -588,6 +599,108 @@ class java_generative_adverserial_network
     return output_array;
   }
 
+
+  public static double[][] romance_emotion(double[] full_population_weights_discriminator, double[] full_population_biases_discriminator, double[][][] outputs_for_all_training_data_generator_FAKE, int[] LAYERS_BEING_USED_DISCRIMINATOR, String activation_functions_for_discriminator, double[][][] initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator, double[][][] real_data, int extra_iterations_equalizing_romance, double learning_rate_descriminator, double[] empty_derivative_list_weights_dicsriminator, double[] empty_derivative_lists_biases_discriminator, double[] last_layer_to_cost_effects_empty_discriminator, double[] weight_surrounding_layer_numbers_empty_discriminator, double[] nodes_counted_in_each_layer_discriminator, double[][][] empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_discriminator,             double[] full_population_weights_generator, double[] full_population_biases_generator, int[] LAYERS_BEING_USED_GENERATOR, String activation_functions_for_generator, double[][][] initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_generator, double learning_rate_generator, double[] empty_derivative_list_weights_generator, double[] empty_derivative_lists_biases_generator, double[] last_layer_to_cost_effects_empty_generator, double[] weight_surrounding_layer_numbers_empty_generator, double[] nodes_counted_in_each_layer_generator, double[][][] empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_generator, double weights_amount_generator, double biases_amount_generator)
+  {
+    double overall_fake_tricking_score=0;
+    boolean generator_ahead=true;
+    double[] new_weights_discriminator=full_population_weights_discriminator;
+    double[] new_biases_discriminator=full_population_biases_discriminator;
+    double[] new_weights_generator=full_population_weights_generator;
+    double[] new_biases_generator=full_population_biases_generator;
+    for (int i=0; i<outputs_for_all_training_data_generator_FAKE.length; i++)
+    {
+      overall_fake_tricking_score+=run_network(full_population_weights_discriminator, full_population_biases_discriminator, outputs_for_all_training_data_generator_FAKE[i][0], LAYERS_BEING_USED_DISCRIMINATOR, activation_functions_for_discriminator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator)[0][0][0][0];
+    }
+    double overall_real_tricking_score=0;
+    for (int i1=0; i1<real_data.length; i1++)
+    {
+      overall_real_tricking_score+=run_network(full_population_weights_discriminator, full_population_biases_discriminator, real_data[i1][0], LAYERS_BEING_USED_DISCRIMINATOR, activation_functions_for_discriminator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator)[0][0][0][0];
+    }
+
+    if (overall_fake_tricking_score<overall_real_tricking_score)
+    {
+      generator_ahead=false;
+      System.out.print("The descriminator is ahead");
+        }   
+    else
+    {
+      if (overall_fake_tricking_score>overall_real_tricking_score)
+      {
+        generator_ahead=true;
+        System.out.print("The generator is ahead");
+      }
+    }
+
+    if (generator_ahead==true)
+    {
+      int data_instance_amount_generator=outputs_for_all_training_data_generator_FAKE.length;
+      int data_instance_amount_real=real_data.length;
+      double[][][] discriminator_training_data={}; //This is the real end result one
+      double[][][] discriminator_training_data_DRAFT={}; //This one is sorted by only false then only true, but it makes it so the real data can be scrambled in terms of real and fake.
+      discriminator_training_data=Arrays.copyOf(new double[][][] {}, data_instance_amount_generator+data_instance_amount_real);
+      discriminator_training_data_DRAFT=Arrays.copyOf(new double[][][] {}, data_instance_amount_generator+data_instance_amount_real);
+      for (int i3=0; i3<data_instance_amount_real; i3++)
+      {
+        discriminator_training_data_DRAFT[i3]=Arrays.copyOf(new double[][] {{},{}}, data_instance_amount_generator);
+        discriminator_training_data_DRAFT[i3][0]=outputs_for_all_training_data_generator_FAKE[i3][0];
+        discriminator_training_data_DRAFT[i3][1]=outputs_for_all_training_data_generator_FAKE[i3][1];
+      }
+      for (int i4=0; i4<data_instance_amount_real; i4++)
+      {
+        discriminator_training_data_DRAFT[i4+data_instance_amount_generator]=Arrays.copyOf(new double[][] {{},{}}, data_instance_amount_real);
+        discriminator_training_data_DRAFT[i4+data_instance_amount_generator][0]=real_data[i4][0];
+        discriminator_training_data_DRAFT[i4+data_instance_amount_generator][1]=new double[] {1};
+      }
+      for (int i2=0; i2<data_instance_amount_generator+data_instance_amount_real; i2++)
+      {
+        String data_ID_STRING=" ";
+        for (int i5=0; i5<data_instance_amount_generator+data_instance_amount_real; i5++)
+        {
+          int random_ID=(int)Math.round(Math.random()*(discriminator_training_data_DRAFT.length-1));
+          if (!data_ID_STRING.contains(" "+Integer.toString(random_ID)+" "))
+          {
+          data_ID_STRING+=Integer.toString(random_ID)+" ";
+          discriminator_training_data[i2]=discriminator_training_data_DRAFT[random_ID];
+          }
+        }
+      }
+
+      for (int i2=0; i2<extra_iterations_equalizing_romance; i2++)
+      { 
+        
+        double[][] new_weights_and_biases_discriminator=take_gradient_decent_step_SPECIAL_FOR_GANs(LAYERS_BEING_USED_DISCRIMINATOR, activation_functions_for_discriminator, discriminator_training_data, full_population_weights_discriminator.length, full_population_biases_discriminator.length, full_population_weights_discriminator, full_population_biases_discriminator, learning_rate_descriminator,  empty_derivative_list_weights_dicsriminator, empty_derivative_lists_biases_discriminator, last_layer_to_cost_effects_empty_discriminator, weight_surrounding_layer_numbers_empty_discriminator, nodes_counted_in_each_layer_discriminator, empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_discriminator, false, new double[] {}, new double[] {}, new String (""), new double[][][] {}, new int[] {});
+        new_weights_discriminator=new_weights_and_biases_discriminator[0];
+        new_biases_discriminator=new_weights_and_biases_discriminator[1];
+        full_population_weights_discriminator=new_weights_discriminator;
+        full_population_biases_discriminator=new_biases_discriminator;
+      }
+    } 
+    else
+    {
+      for (int i3=0; i3<extra_iterations_equalizing_romance; i3++)
+      {
+        double[][] new_weights_and_biases_generator=take_gradient_decent_step_SPECIAL_FOR_GANs(LAYERS_BEING_USED_GENERATOR, activation_functions_for_generator, outputs_for_all_training_data_generator_FAKE, full_population_weights_generator.length, full_population_biases_generator.length, full_population_weights_generator, full_population_biases_generator, learning_rate_generator, empty_derivative_list_weights_generator, empty_derivative_lists_biases_generator, last_layer_to_cost_effects_empty_generator, weight_surrounding_layer_numbers_empty_generator, nodes_counted_in_each_layer_generator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_generator, true, full_population_weights_discriminator, full_population_biases_discriminator, activation_functions_for_discriminator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator, LAYERS_BEING_USED_DISCRIMINATOR);
+        new_weights_generator=new_weights_and_biases_generator[0];
+        new_biases_generator=new_weights_and_biases_generator[1];
+        full_population_weights_generator=new_weights_generator;
+        full_population_biases_generator=new_biases_generator;
+      }
+    }
+
+
+    double[][] romance_outputs=new double[][] {new_weights_discriminator, new_biases_discriminator, new_weights_generator, new_biases_generator};
+    return romance_outputs;
+  }
+
+
+  public static double[][][] control_emotions(double[] full_population_weights_discriminator, double[] full_population_biases_discriminator, double[][][] outputs_for_all_training_data_generator_FAKE, int[] LAYERS_BEING_USED_DISCRIMINATOR, String activation_functions_for_discriminator, double[][][] initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator, double[][][] real_data, int extra_iterations_equalizing_romance, double learning_rate_descriminator, double[] empty_derivative_list_weights_dicsriminator, double[] empty_derivative_lists_biases_discriminator, double[] last_layer_to_cost_effects_EMPTY_discriminator, double[] weight_surrounding_layer_numbers_EMPTY_discriminator, double[] nodes_counted_in_each_layer_discriminator, double[][][] empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_discriminator, double[] full_population_weights_generator, double[] full_population_biases_generator, int[] LAYERS_BEING_USED_GENERATOR, String activation_functions_for_generator, double[][][] initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_generator, double learning_rate_generator, double[] empty_derivative_list_weights_generator, double[] empty_derivative_lists_biases_generator, double[] last_layer_to_cost_effects_empty_generator, double[] weight_surrounding_layer_numbers_empty_generator, double[] nodes_counted_in_each_layer_generator, double[][][] empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_generator, double weights_amount_generator, double biases_amount_generator)
+  {
+    double[][] romance_outputs=romance_emotion(full_population_weights_discriminator, full_population_biases_discriminator, outputs_for_all_training_data_generator_FAKE, LAYERS_BEING_USED_DISCRIMINATOR, activation_functions_for_discriminator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator, real_data, extra_iterations_equalizing_romance, learning_rate_descriminator, empty_derivative_list_weights_dicsriminator, empty_derivative_lists_biases_discriminator, last_layer_to_cost_effects_EMPTY_discriminator, weight_surrounding_layer_numbers_EMPTY_discriminator, nodes_counted_in_each_layer_discriminator, empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_discriminator, full_population_weights_generator, full_population_biases_generator, LAYERS_BEING_USED_GENERATOR, activation_functions_for_generator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_generator, learning_rate_generator, empty_derivative_list_weights_generator, empty_derivative_lists_biases_generator, last_layer_to_cost_effects_empty_generator, weight_surrounding_layer_numbers_empty_generator, nodes_counted_in_each_layer_generator, empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_generator, weights_amount_generator, biases_amount_generator);
+    return new double[][][] {romance_outputs};
+  }
+
+
     public static void main(String[] args)
     {
         //things you can specify
@@ -595,22 +708,23 @@ class java_generative_adverserial_network
         double[] initializing_range_discriminator={-0.3,0.3};
         double[] initializing_range_generator={-0.3,0.3};
         String data_as_string=get_text_data();
-        //THE AMOUNT OF INPUTS IN THE DISCRIMINATOR SHOULD BE THE SAME AS THE AMOUNT OF OUTPUTS IN THE GENERATOR
+        //THE AMOUNT OF INPUTS IN THE DISCRIMINATOR SHOULD BE THE SAME AS THE AMOUNT OF OUTPUTS IN THE GENERATOR, AND THE AMOUNT OF OUTPUTS IN THE DESCRIMINATOR SHOULD BE 1.
         int[] LAYERS_BEING_USED_DISCRIMINATOR={1,5,5,1};
         int[] LAYERS_BEING_USED_DISCRIMINATOR_FOR_EFFICIENCY={1,5,5,1};
         int[] LAYERS_BEING_USED_GENERATOR={1,2,5,1};
         int[] LAYERS_BEING_USED_GENERATOR_FOR_EFFICIENCY={1,2,5,1};
         String activation_functions_for_generator="";
         String additional_activation_functions_discriminator="";
-        //the two data instance amounts ()
+        //the two data instance amounts
         int data_instance_amount_real=2;
         int data_instance_amount_generator=2;
         boolean print_data=true;
         double[][][] data=convert_data(data_as_string, data_instance_amount_real, LAYERS_BEING_USED_DISCRIMINATOR[0], LAYERS_BEING_USED_DISCRIMINATOR[LAYERS_BEING_USED_DISCRIMINATOR.length-1], print_data);
         double[] testing_training_data_ratio={0,1};
+        int extra_iterations_equalizing_romance=1;
         final int epoch_amount=1000000000; //1000000000 is the max factor of 10 that can be in this, because otherwise it would be a long or some other type of datatype, but this is for all practical uses infinity.
-        final double learning_rate_discriminator=0.0001;
-        final double learning_rate_generator=0.0001;
+        final double learning_rate_discriminator=0.00001;
+        final double learning_rate_generator=0.00001;
 
         //Getting ready for main computation
         System.out.println("Getting ready...");
@@ -661,7 +775,7 @@ class java_generative_adverserial_network
           for (int i1=0; i1<data_instance_amount_generator; i1++)
           {
             outputs_for_all_training_data_generator_FAKE[i1]=Arrays.copyOf(new double[][] {{},{}}, data_instance_amount_generator);
-            outputs_for_all_training_data_generator_FAKE[i1][0]=run_network(full_population_weights_generator, full_population_biases_generator, training_data[i1][0], LAYERS_BEING_USED_GENERATOR, activation_functions_for_generator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_generator)[0][0][0];
+            outputs_for_all_training_data_generator_FAKE[i1][0]=run_network(full_population_weights_generator, full_population_biases_generator, new double[] {Math.random()}, LAYERS_BEING_USED_GENERATOR, activation_functions_for_generator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_generator)[0][0][0];
             outputs_for_all_training_data_generator_FAKE[i1][1]=new double[] {0};
           }
 
@@ -695,27 +809,33 @@ class java_generative_adverserial_network
             }
           }
 
+
           double[][] new_weights_and_biases_discriminator=take_gradient_decent_step_SPECIAL_FOR_GANs(LAYERS_BEING_USED_DISCRIMINATOR, activation_functions_for_discriminator, discriminator_training_data, weights_amount_discriminator, biases_amount_discriminator, full_population_weights_discriminator, full_population_biases_discriminator, learning_rate_discriminator, empty_derivative_list_weights_discriminator, empty_derivative_lists_biases_discriminator, last_layer_to_cost_effects_EMPTY_discriminator, weight_surrounding_layer_numbers_EMPTY_discriminator, nodes_counted_in_each_layer_discriminator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator, false , new double[] {}, new double[] {}, new String (""), new double[][][] {}, new int[] {}); //The false near the end indicates that it is not the generator that it is finding the error for when calculating derivatives
           full_population_weights_discriminator=new_weights_and_biases_discriminator[0];
           full_population_biases_discriminator=new_weights_and_biases_discriminator[1];
+          
 
           System.out.print("Discriminator guesses (for fake then real data): "+Arrays.toString(run_network(full_population_weights_discriminator, full_population_biases_discriminator, outputs_for_all_training_data_generator_FAKE[0][0], LAYERS_BEING_USED_DISCRIMINATOR, activation_functions_for_discriminator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator)[0][0][0]));
-          System.out.println(Arrays.toString(run_network(full_population_weights_discriminator, full_population_biases_discriminator, data[0][0], LAYERS_BEING_USED_DISCRIMINATOR, activation_functions_for_discriminator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator)[0][0][0]));
+          System.out.print(Arrays.toString(run_network(full_population_weights_discriminator, full_population_biases_discriminator, data[0][0], LAYERS_BEING_USED_DISCRIMINATOR, activation_functions_for_discriminator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator)[0][0][0]));
 
-          for (int i6=0; i6<2; i6++)
-          {
+          
           double[][] new_weights_and_biases_generator=take_gradient_decent_step_SPECIAL_FOR_GANs(LAYERS_BEING_USED_GENERATOR, activation_functions_for_generator, data, weights_amount_generator, biases_amount_generator, full_population_weights_generator, full_population_biases_generator, learning_rate_generator, empty_derivative_list_weights_generator, empty_derivative_lists_biases_generator, last_layer_to_cost_effects_EMPTY_generator, weight_surrounding_layer_numbers_EMPTY_generator, nodes_counted_in_each_layer_generator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_generator, true, full_population_weights_discriminator, full_population_biases_discriminator, activation_functions_for_discriminator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator, LAYERS_BEING_USED_DISCRIMINATOR);
           full_population_weights_generator=new_weights_and_biases_generator[0];
           full_population_biases_generator=new_weights_and_biases_generator[1];
-          }
+      
+
+          double[][][] control_emotions_outputs=control_emotions(full_population_weights_discriminator, full_population_biases_discriminator, outputs_for_all_training_data_generator_FAKE, LAYERS_BEING_USED_DISCRIMINATOR, activation_functions_for_discriminator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator, data, extra_iterations_equalizing_romance, learning_rate_discriminator, empty_derivative_list_weights_discriminator, empty_derivative_lists_biases_discriminator, last_layer_to_cost_effects_EMPTY_discriminator, weight_surrounding_layer_numbers_EMPTY_discriminator, nodes_counted_in_each_layer_discriminator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator, full_population_weights_generator, full_population_biases_generator, LAYERS_BEING_USED_GENERATOR, activation_functions_for_generator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_generator, learning_rate_generator, empty_derivative_list_weights_generator, empty_derivative_lists_biases_generator, last_layer_to_cost_effects_EMPTY_generator, weight_surrounding_layer_numbers_EMPTY_generator, nodes_counted_in_each_layer_generator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_generator, weights_amount_generator, biases_amount_generator);
+          full_population_weights_discriminator=control_emotions_outputs[0][0];
+          full_population_biases_discriminator=control_emotions_outputs[0][1];
+          full_population_weights_generator=control_emotions_outputs[0][2];
+          full_population_biases_generator=control_emotions_outputs[0][3];
+          System.out.println();
+
+
          //THE TRAINING OF THE DESCRIMINATOR AND GENERATOR WORKS!!!
-         //IF THE DESCRIMINATOR WINS, IT WILL DISCRIMINATE CORRECTLY. IF THE GENERATOR WINS, IT WILL MAKE THE DESCRIMINATOR GO CRAZY AND END UP WITH A MUCH OVERCOMPENSATED NETWORK, DISPLAYING "NaN" AS THE OUTPUTS, OR AT LEAST I HYPOTHESIZE. TRY TO FIX THIS WITH EMOTIONS.
-
-          //MAKE THE LEARNING RATE CONTROLLABLE BETWEEN THE GENERATOR AND DISCRIMINATOR
+         //Romance works now, the romance emotion works, so it is much better and more stable.
+        
         }
-
-
-        //THE THINGS IN GETTING IT READY WORKS FULLY, AND THE THINGS IN THE THINGS YOU CAN SPECIFY. YOU'VE ALREADY MADE SURE EVERYTING IN GETTING IT READY FOR THE MAIN COMPUTATION AND THE THINGS YOU CAN SPECIFY WORKS. IT WORKS FULLY. NOW JUST MODIFY THE MAIN TRAINING LOOP SO THAT IT IS A GAN NOT TWO NETWORKS TRAINING AND PRINTING SOMETHING.
 
 
     }
