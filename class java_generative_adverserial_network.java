@@ -656,7 +656,7 @@ class java_generative_adverserial_network
      }
      catch(Exception ex)
      {
-      System.out.println("Coordinate is out of bounds!");
+      System.out.print("Coordinate is out of bounds!");
      }
      return image;
  }
@@ -673,9 +673,9 @@ class java_generative_adverserial_network
     double[] new_biases_generator=full_population_biases_generator;
     for (int i=0; i<outputs_for_all_training_data_generator_FAKE.length; i++)
     {
-      overall_fake_tricking_score+=run_network(full_population_weights_discriminator, full_population_biases_discriminator, outputs_for_all_training_data_generator_FAKE[i][0], LAYERS_BEING_USED_DISCRIMINATOR, activation_functions_for_discriminator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator)[0][0][0][0];
+      overall_fake_tricking_score+=(run_network(full_population_weights_discriminator, full_population_biases_discriminator, outputs_for_all_training_data_generator_FAKE[i][0], LAYERS_BEING_USED_DISCRIMINATOR, activation_functions_for_discriminator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator)[0][0][0][0])/outputs_for_all_training_data_generator_FAKE.length;
     }
-    double overall_real_tricking_score=outputs_for_all_training_data_generator_FAKE.length-overall_fake_tricking_score;
+    double overall_real_tricking_score=1-overall_fake_tricking_score;
 
     if (overall_fake_tricking_score<overall_real_tricking_score)
     {
@@ -837,7 +837,7 @@ class java_generative_adverserial_network
         double[] testing_training_data_ratio={0,1};
         int extra_iterations_equalizing_romance=1;
         final int epochs_per_initialization=1000000; //1000000000 is the max factor of 10 that can be in this, because otherwise it would be a long or some other type of datatype, but this is for all practical uses infinity.
-        final int initialization_amount=1000;
+        final int initialization_amount=100;
         double BASE_LEARNING_RATE_DISCRIMINATOR=0.01;
         double BASE_LEARNING_RATE_GENERATOR=0.01;
         int x_size_graph=800;
@@ -906,7 +906,7 @@ class java_generative_adverserial_network
           //Main training loop
           for (int i=0; i<epochs_per_initialization; i++)
           {
-            System.out.print("It is epoch "+i+"  |  ");
+            System.out.print("It is epoch "+i+", and initialization "+(multiple_initializations_OVERALL_MAIN+1)+"  |  ");
 
             System.out.print("(");
             System.out.print(System.nanoTime()-iteration_start_time_nanoseconds);
@@ -994,7 +994,6 @@ class java_generative_adverserial_network
               }
               x_REAL_VALUE=0;
 
-              multiple_initializations_OVERALL_MAIN+=1;
               System.out.println("Getting ready...");
               learning_rate_discriminator=BASE_LEARNING_RATE_DISCRIMINATOR;
               learning_rate_generator=BASE_LEARNING_RATE_GENERATOR;
@@ -1094,13 +1093,14 @@ class java_generative_adverserial_network
               full_population_weights_generator=new_weights_and_biases_generator[0];
               full_population_biases_generator=new_weights_and_biases_generator[1];
 
-              i=epochs_per_initialization+1;       
+              i=0;
+              multiple_initializations_OVERALL_MAIN++;
               
             }
 
 
-            System.out.print("  |  Discriminator guesses (for fake then real data, one instance): "+Arrays.toString(run_network(full_population_weights_discriminator, full_population_biases_discriminator, outputs_for_all_training_data_generator_FAKE[0][0], LAYERS_BEING_USED_DISCRIMINATOR, activation_functions_for_discriminator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator)[0][0][0]));
-            System.out.print(Arrays.toString(run_network(full_population_weights_discriminator, full_population_biases_discriminator, data[0][0], LAYERS_BEING_USED_DISCRIMINATOR, activation_functions_for_discriminator, initialized_empty_weights_sorted_in_layers_then_second_connection_in_layer_then_first_connection_in_layer_for_speed_discriminator)[0][0][0]));
+            System.out.print("  |  Discriminator guesses (fake then real tricking scores): "+control_emotions_outputs[4][0][0]+" | ");
+            System.out.print(control_emotions_outputs[4][0][1]);
 
 
             System.out.println();
