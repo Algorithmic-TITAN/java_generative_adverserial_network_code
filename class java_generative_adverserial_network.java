@@ -321,7 +321,6 @@ class java_generative_adverserial_network
         else
         {
           effect_of_bias=last_layer_to_cost_effects[i2];
-          last_layer_to_cost_effects[i1]=effect_of_bias;
         }
       }
             
